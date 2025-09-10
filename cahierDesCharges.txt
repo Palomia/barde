@@ -1,0 +1,64 @@
+🎯 Cahier des charges – Mémoire d’actuariat
+1. Objectif général
+Le mémoire vise à analyser et tarifer un produit d’assurance hybride combinant un déclencheur paramétrique (vague de froid) et une indemnisation indemnitaire (rendements réels) dans le cadre de la production de betteraves sucrières au Royaume-Uni.
+Il doit trouver un équilibre entre :
+apport académique (revue de littérature, modélisation par lois extrêmes, méthodes de \textit{detrending}) ;
+impact pratique (faisabilité opérationnelle pour un assureur / réassureur, applicabilité directe au marché betteravier UK).
+2. Problématique centrale
+Comment évaluer et tarifer un contrat paramétrique/indemnitaire en contexte de risque climatique extrême, en particulier le gel affectant la betterave sucrière au Royaume-Uni ?
+3. Positionnement sectoriel
+Focus sur le marché britannique de la betterave sucrière, structuré autour d’un transformateur unique (British Sugar) et d’un accord interprofessionnel (\textit{Inter Professional Agreement}).
+Importance du Contract Tonnage Entitlement (CTE) :
+indicateur de droits et obligations de livraison ;
+utilisé comme proxy d’ambition de production, mais potentiellement décorrélé du rendement réel.
+Vulnérabilité spécifique de la betterave : stockage en plein air, sensible aux vagues de froid.
+Contexte réglementaire pris en compte, mais pas d’accent sur les néonicotinoïdes.
+4. Revue de littérature attendue
+Assurance agricole traditionnelle : forces et limites des contrats indemnitaires.
+Assurance paramétrique :
+principes, avantages (rapidité, transparence, faible coût),
+limites liées au basis risk.
+Produits hybrides :
+émergence comme compromis entre efficacité opérationnelle et acceptabilité par les agriculteurs,
+littérature existante sur la combinaison indice + pertes réelles.
+Modélisation actuarielle :
+distributions lourdes (Cauchy conditionnelle, lois extrêmes),
+méthodes de \textit{detrending} pour isoler l’effet climatique des rendements.
+5. Données et variables
+Données agricoles : production réelle (pondérée par qualité et taux de sucre), surfaces, CTE, code postal.
+Données météo : températures minimales journalières issues de plusieurs stations (Lincoln, Marham, Wattisham).
+Variables construites :
+rendement réel ($RR$),
+rendement moyen 5 ans ($RM5$),
+tonnage assuré ($TA$),
+rendement assuré ($RA$),
+indice de déficit de rendement ($IDR$),
+distances champs–stations et interpolation de températures.
+6. Méthodologie
+Analyse de la tendance des rendements (réel vs. assuré) :
+croissance structurelle (progrès techniques, climat),
+nécessité de détendancer, approche multiplicative.
+Détection et modélisation des vagues de froid :
+\textit{detrending par quantiles}, pour mieux capter l’évolution des températures extrêmes.
+Modélisation des pertes individuelles :
+distribution de Cauchy conditionnelle,
+simulations Monte Carlo,
+prise en compte de la dépendance spatiale entre exploitations.
+Tarification et évaluation du contrat hybride :
+fréquence et sévérité,
+réduction du basis risk,
+faisabilité pratique pour l’assureur.
+7. Structure du mémoire
+Introduction : contextualisation, problématique, objectif, plan.
+Chapitre 1 – Contexte et revue de littérature : risques agricoles, secteur betterave UK, assurance classique vs. paramétrique, basis risk, produits hybrides, positionnement du mémoire.
+Chapitre 2 – Données et préparation : description des données agricoles et météo, construction des variables, méthodologie de \textit{detrending}.
+Chapitre 3 – Modélisation : distribution des pertes, dépendances spatiales, simulations stochastiques, calibration.
+Chapitre 4 – Résultats : analyse empirique, tarification du contrat hybride, comparaison avec solutions existantes.
+Conclusion : synthèse des apports académiques et pratiques, limites, perspectives.
+8. Style et ton
+Narratif mais sobre : mettre en avant les enjeux concrets pour les agriculteurs et assureurs, tout en gardant la rigueur académique attendue en actuariat.
+LaTeX pour tout le mémoire.
+Bibliographie construite progressivement, en intégrant des références classiques sur :
+assurance paramétrique (Miranda & Farrin, Barnett & Mahul),
+basis risk (Bastos et al.),
+extrêmes et modélisation des rendements agricoles.
