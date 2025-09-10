@@ -1,0 +1,172 @@
+\documentclass[11pt,a4paper,openright,twoside]{report}
+
+% ====================
+% PACKAGES
+% ====================
+\usepackage[a4paper,left=2cm,right=2cm,top=2.5cm,bottom=2.5cm]{geometry}
+\usepackage[utf8]{inputenc}    % Encodage UTF-8
+\usepackage[T1]{fontenc}       % Caractères accentués
+\usepackage[french]{babel}     % Langue FR
+\usepackage{amsmath, amssymb}  % Maths
+\usepackage{graphicx}          % Images
+\usepackage{caption}           % Légendes
+\usepackage{hyperref}          % Liens cliquables
+
+\setlength{\parskip}{0.5cm}   % espace de 0.5 cm entre paragraphes
+
+
+% ====================
+% PACKAGES
+% ====================
+\usepackage[a4paper,left=2cm,right=2cm,top=2.5cm,bottom=2.5cm]{geometry}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{amsmath, amssymb}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{hyperref}
+\usepackage{titlesec}  % Pour compacter les titres
+
+% ====================
+% INFOS DOCUMENT
+% ====================
+\title{%
+    \textbf{Modélisation d’un contrat d’assurance paramétrique climatique} \\
+    \large Une approche conditionnelle basée sur la loi de Cauchy
+}
+\author{Amaury Palomino}
+\date{\today}
+
+% ====================
+% DOCUMENT
+% ====================
+\begin{document}
+
+% \documentclass[11pt,a4paper,openany,oneside]{report}
+% Page de couverture = page 1 sans numéro affiché
+\pagenumbering{gobble}
+\maketitle
+
+% Page blanche après couverture
+\newpage
+\thispagestyle{empty}
+\mbox{}
+\newpage
+
+% Reprise de la numérotation en arabe
+\pagenumbering{arabic}
+\tableofcontents
+\clearpage
+
+
+
+\makeatletter
+\renewcommand{\chapter}{%
+  \@startsection{chapter}{0}{0pt}%
+  {-2ex plus -1ex minus -.2ex}%
+  {1ex plus .2ex}%
+  {\normalfont\Large\bfseries}}
+\makeatother
+
+% ====================
+% ESPACEMENT SOBRE
+% ====================
+\setlength{\parskip}{0.2cm}    % espace mini entre paragraphes
+\setlength{\parindent}{0pt}    % pas d'indentation
+
+% Titres de chapitres plus compacts
+\titleformat{\chapter}[hang]
+  {\normalfont\bfseries}
+  {\thechapter.}{0.5em}{}      % numéro et titre sur la même ligne
+\titlespacing*{\chapter}{0pt}{0.5ex}{0.5ex}  % espacement avant/après très réduit
+
+
+\chapter*{Introduction}
+\addcontentsline{toc}{chapter}{Introduction}
+
+L’assurance est un instrument essentiel de stabilisation économique face aux événements aléatoires qui affectent les individus, les entreprises et les collectivités. Dans le domaine agricole, les aléas climatiques --- tels que sécheresse, gel, excès de pluie ou températures extrêmes --- constituent une menace majeure pour la continuité de l’activité et la pérennité financière des exploitations. Ces risques sont traditionnellement couverts par des contrats indemnitaires classiques, dans lesquels l’indemnisation repose sur l’évaluation des pertes réelles. Cette approche, bien que robuste en principe, présente plusieurs limites : délais de règlement parfois longs, coûts élevés de gestion des sinistres, subjectivité dans l’évaluation, asymétrie d’information entre assureur et assuré, et difficulté à caractériser avec précision l’origine d’une perte \citep{miranda2002index}.  
+
+Pour répondre à ces difficultés, l’assurance paramétrique s’est développée depuis deux décennies. Elle repose sur le déclenchement d’un paiement conditionné à la réalisation d’un indice objectif (par exemple une température, un cumul de précipitations, ou un rendement agrégé), plutôt qu’à l’évaluation directe des pertes individuelles \citep{barnett2008agricultural}. Ses avantages sont connus : indemnisation rapide, frais de gestion réduits, transparence dans la définition du risque. En contrepartie, elle introduit le \textit{basis risk}, défini comme l’écart entre l’indemnité versée et la perte réellement subie \citep{bastos2021parametric}. Ce risque de base, impossible à éliminer totalement sauf à recourir à des modèles extrêmement complexes et peu exploitables en pratique, limite l’appétit du marché pour les solutions purement paramétriques, en particulier lorsqu’un aléa climatique n’est qu’une cause partielle du dommage.  
+
+C’est dans ce contexte qu’apparaissent des produits hybrides, combinant un déclencheur paramétrique avec une évaluation partiellement indemnitaire des pertes. Le mémoire s’inscrit dans cette perspective, en analysant un produit développé pour les producteurs de betteraves sucrières au Royaume-Uni. Dans ce secteur, la structure de marché --- dominée par un seul transformateur, British Sugar, et encadrée par des accords collectifs (\textit{Inter Professional Agreement}) --- confère une importance particulière à la continuité de l’approvisionnement et à la gestion des chocs climatiques. Pendant la récolte, les racines de betteraves sont temporairement stockées en plein air, ce qui les rend particulièrement vulnérables aux vagues de froid. Une période prolongée de gel peut dégrader fortement la qualité et entraîner des pertes économiques considérables pour l’ensemble de la filière.  
+
+Le produit étudié repose sur un déclencheur paramétrique défini par la survenue d’une vague de froid, tandis que l’indemnisation reste calculée sur la base des pertes réelles observées. Cette architecture permet de concilier plusieurs impératifs :  
+\begin{itemize}
+    \item réduire significativement le risque de base en limitant les indemnisations aux seules années où l’événement extrême est constaté ;
+    \item maintenir la confiance des assurés grâce à une indemnisation proportionnelle aux pertes réelles, contrairement aux produits purement paramétriques ;
+    \item permettre à l’assureur de mieux caractériser et estimer son risque, en limitant la fréquence des paiements aux années effectivement marquées par un gel sévère.
+\end{itemize}
+
+L’enjeu central de ce mémoire est donc d’évaluer et de tarifer un tel produit hybride, en combinant une approche actuarielle classique et des outils statistiques adaptés aux phénomènes extrêmes. La méthodologie proposée repose notamment sur l’utilisation d’une distribution lourde (la loi de Cauchy conditionnelle) pour modéliser les pertes, alimentée par des simulations stochastiques de températures, et complétée par une prise en compte de la dépendance entre exploitations.  
+
+En résumé, ce mémoire a pour objectif d’analyser dans quelle mesure un produit hybride paramétrique/indemnitaire constitue une réponse pertinente au risque de gel en agriculture, tant du point de vue de la réduction du risque de base que de la faisabilité opérationnelle pour l’assureur. Après une revue de littérature consacrée à l’assurance paramétrique, aux lois de probabilité pour variables extrêmes et aux méthodes de \textit{detrending}, nous présentons les données utilisées et la méthodologie retenue. Enfin, nous discutons les résultats obtenus et les implications pratiques pour la tarification et la gestion du risque.
+
+\chapter{Contexte et revue de littérature}
+
+\section{Le risque climatique en agriculture}
+\subsection{Nature des aléas climatiques}
+- Sécheresse, excès de pluie, gel, tempêtes : effets sur les rendements agricoles.  
+- Sensibilité particulière de la betterave sucrière au froid lors du stockage.  
+
+\subsection{Impacts économiques et assurantiels}
+- Volatilité des revenus agricoles.  
+- Difficulté de mutualisation (corrélation forte entre exploitations proches).  
+- Existence de politiques publiques de soutien (ex. subventions, dispositifs de calamités agricoles).  
+
+\section{Le secteur de la betterave sucrière au Royaume-Uni}
+\subsection{Organisation de la filière}
+- Rôle unique de British Sugar comme transformateur.  
+- Fonctionnement de l’\textit{Inter Professional Agreement} (IPA).  
+
+\subsection{Le Contract Tonnage Entitlement (CTE)}
+- Définition et fonctionnement (droits historiques, surfaces, ajustements).  
+- Enjeux assurantiels : indicateur de production attendue, mais potentiellement décorrélé des rendements réels.  
+
+\section{Assurance agricole traditionnelle et ses limites}
+\subsection{Les contrats indemnitaires classiques}
+- Principe : indemnisation basée sur les pertes constatées.  
+- Avantages : correspondance directe aux pertes.  
+- Limites : coûts de gestion, lenteur des indemnisations, asymétrie d’information, risque moral.  
+
+\subsection{Les interventions publiques}
+- Exemple de la PAC et dispositifs de calamité.  
+- Limites dans le cas de chocs climatiques extrêmes localisés.  
+
+\section{L’assurance indicielle et paramétrique}
+\subsection{Principe et fonctionnement}
+- Définition : déclenchement lié à un indice objectif (météorologique, rendement agrégé, satellite).  
+- Avantages : rapidité, transparence, coûts réduits.  
+
+\subsection{Le basis risk}
+- Définition : écart entre pertes réelles et indemnités paramétriques.  
+- Origines : erreur de mesure, spatial mismatch, mauvaise calibration de l’indice.  
+- Conséquences : perte de confiance, adoption limitée.  
+
+\section{Vers des produits hybrides}
+\subsection{Motivations de l’hybridation}
+- Réduction du basis risk tout en gardant la simplicité paramétrique.  
+- Alignement des intérêts assureur/assuré.  
+
+\subsection{Exemples et littérature existante}
+- Produits combinant indice et perte réelle.  
+- Expériences dans d’autres cultures et régions.  
+
+\section{Positionnement du mémoire}
+\subsection{Choix du cas d’étude}
+- Justification du choix betterave UK (marché structuré, données disponibles, vulnérabilité spécifique au gel).  
+
+\subsection{Apport académique et pratique}
+- Académique : modélisation par lois extrêmes et méthodes de \textit{detrending}.  
+- Pratique : proposition d’un produit testable par assureur et réassureur.  
+
+
+% ====================
+% BIBLIOGRAPHIE
+% ====================
+\clearpage
+\addcontentsline{toc}{chapter}{Bibliographie}
+\bibliographystyle{plain}
+\bibliography{memoire}
+
+\end{document}

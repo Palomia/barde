@@ -1,0 +1,680 @@
+\documentclass[11pt,a4paper,openright,twoside]{report}
+
+% ====================
+% PACKAGES
+% ====================
+\usepackage[a4paper,left=2cm,right=2cm,top=2.5cm,bottom=2.5cm]{geometry}
+\usepackage[utf8]{inputenc}    % Encodage UTF-8
+\usepackage[T1]{fontenc}       % Caractères accentués
+\usepackage[french]{babel}     % Langue FR
+\usepackage{amsmath, amssymb}  % Maths
+\usepackage{graphicx}          % Images
+\usepackage{caption}           % Légendes
+\usepackage{hyperref}          % Liens cliquables
+
+\setlength{\parskip}{0.5cm}   % espace de 0.5 cm entre paragraphes
+
+
+% ====================
+% PACKAGES
+% ====================
+\usepackage[a4paper,left=2cm,right=2cm,top=2.5cm,bottom=2.5cm]{geometry}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{amsmath, amssymb}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{hyperref}
+\usepackage{titlesec}  % Pour compacter les titres
+
+% ====================
+% INFOS DOCUMENT
+% ====================
+\title{%
+    \textbf{Modélisation d’un contrat d’assurance paramétrique climatique} \\
+    \large Une approche conditionnelle basée sur la loi de Cauchy
+}
+\author{Amaury Palomino}
+\date{\today}
+
+% ====================
+% DOCUMENT
+% ====================
+\begin{document}
+
+% \documentclass[11pt,a4paper,openany,oneside]{report}
+% Page de couverture = page 1 sans numéro affiché
+\pagenumbering{gobble}
+\maketitle
+
+% Page blanche après couverture
+\newpage
+\thispagestyle{empty}
+\mbox{}
+\newpage
+
+% Reprise de la numérotation en arabe
+\pagenumbering{arabic}
+\tableofcontents
+\clearpage
+
+
+
+\makeatletter
+\renewcommand{\chapter}{%
+  \@startsection{chapter}{0}{0pt}%
+  {-2ex plus -1ex minus -.2ex}%
+  {1ex plus .2ex}%
+  {\normalfont\Large\bfseries}}
+\makeatother
+
+% ====================
+% ESPACEMENT SOBRE
+% ====================
+\setlength{\parskip}{0.2cm}    % espace mini entre paragraphes
+\setlength{\parindent}{0pt}    % pas d'indentation
+
+% Titres de chapitres plus compacts
+\titleformat{\chapter}[hang]
+  {\normalfont\bfseries}
+  {\thechapter.}{0.5em}{}      % numéro et titre sur la même ligne
+\titlespacing*{\chapter}{0pt}{0.5ex}{0.5ex}  % espacement avant/après très réduit
+
+\chapter*{Introduction}
+\addcontentsline{toc}{chapter}{Introduction}
+
+L’assurance constitue un outil fondamental pour stabiliser l’économie face aux événements aléatoires affectant les individus, les entreprises et les collectivités. Dans le domaine agricole, les aléas climatiques — tels que sécheresse, gel, excès de pluie ou températures extrêmes — représentent un risque majeur pour la production et la pérennité financière des exploitations. Traditionnellement, ces risques ont été couverts par des produits d’assurance indemnitaire classiques, basés sur la constatation des pertes réelles. Ces contrats présentent néanmoins plusieurs limites : délais de versement longs, coûts élevés de gestion des sinistres, subjectivité dans l’évaluation des pertes, asymétrie d’information entre assureur et assuré et une difficulté à caractériser la cause d'une perte, nottament dans le cadre des couverture agricoles.
+
+Pour répondre à certaines de ces limites, l’assurance paramétrique s’est développée. Elle repose sur le déclenchement d’un paiement conditionné à la réalisation d’un indice objectif, tel qu’un niveau de température ou un rendement agrégé, plutôt qu’à l’évaluation directe des pertes. Les avantages de cette approche sont nombreux : rapidité d’indemnisation, réduction des frais de gestion et transparence dans la définition du risque, définition clair de la cause du sinistre. Cependant, elle introduit le risque de base (basis risk), correspondant à l’écart potentiel entre l’indemnisation versée et les pertes réellement subies. A moins d'avoir un modele extremement sophistiqué, qui est le plus souvent intaténiable et trop difficile a proposé sur le marché du à son aspect "boite noire", le risque de base sera toujours présent, d'autant plus sur les risques affectés par différents périls. C'est pourquoi une grande partie du risque agricole reste innassurable en paramétrique pur.
+
+Le produit étudié dans ce mémoire est de nature hybride, combinant à la fois une composante paramétrique et une composante indemnitaire. Le trigger paramétrique correspond à la survenue d’une vague de froid, tandis que le paiement repose sur l’évaluation réelle des pertes sur le rendement agricole pendant ces périodes. Cette architecture permet de réduire significativement le risque de base, tout en restreignant le paiement aux année sujettes à l'évènement de gel. Il assure donc la confiance du client dans la solution tout en cadran assez le produit pour permettre à l'assureur de caracteriser son risque, l'estimer plus précisement et restreindre sa fréquence aux épisodes de froid. Contrairement à des police paramétriques pures, une telle structure conserve la nécessité de modéliser les rendements pour les années impactées par l’événement paramétrique, le risque de déviation fasse aux estimations étant porté par l'assureur.
+
+L’intérêt de ce type de produit réside dans sa capacité à se concentrer sur un événement ciblé dont l’impact est notable, mais relativement rare, sur environ 20\% des années étudiées (correspondant à la période de retour d’une vague de froid). Dans ce contexte, la complexité du rendement, qui dépend de multiples facteurs, devient moins incertaine, car les autres composantes du rendement sont relativement moins importantes pendant l’événement extrême. Cela permet d’adopter une approche statistique plus robuste pour évaluer le rendement assuré, uniquement dans les situations où le risque est matériel.
+
+La modélisation actuarielle repose sur une combinaison de techniques     :
+\begin{itemize}
+\item L’ajustement d’une loi de probabilité conditionnelle à la température tronquée sur les pertes, permettant de simuler les rendements du portefeuille d'agriculteurs selon un épisode de froid simulé ;
+
+\item L’utilisation d’un modèle stochastique de séries temporelles de température, qui, supposé fiable pour ce mémoire, permet d’alimenter des simulations Monte Carlo et d’estimer la distribution complète des paiements du contrat ;
+
+\item La prise en compte de la dépendance résiduelle entre comptes et l’intégration d’une structure de corrélation simple pour refléter les interdépendances entre différentes entités.
+
+\end{itemize}
+
+Ainsi, ce mémoire propose une approche actuarielle originale et innovante, combinant la flexibilité d’une loi de Cauchy conditionnelle avec la puissance des simulations stochastiques. Cette méthode permet non seulement de capturer la variabilité extrême des rendements agricoles lors des événements climatiques ciblés, mais aussi d’évaluer l’exposition globale d’un portefeuille hybride, de mesurer la sensibilité du contrat aux paramètres clés et d’apporter des conclusions pratiques pour la tarification et la gestion des risques.
+
+En résumé, le travail présenté ici démontre que l’utilisation d’une distribution lourde, dépendante de la température, dans le cadre d’un produit hybride paramétrique/indemnitaire, constitue une alternative robuste et pertinente aux modèles traditionnels, capable de concilier précision, applicabilité métier et maîtrise du risque de base.
+
+% ====================
+% REVUE DE LITTERATURE
+% ====================
+\chapter{Revue de littérature et cadre théorique}
+% Assurance paramétrique : définitions, enjeux
+% Lois de probabilité pour variables extrêmes
+% Méthodes de detrending
+% Dépendance et corrélation entre risques
+
+\section{Assurance paramétrique et produits hybrides}
+L’assurance paramétrique s’est développée comme une alternative aux produits indemnitaires classiques, en particulier dans le domaine agricole et climatique. Elle repose sur le déclenchement d’un paiement conditionné à la réalisation d’un indice objectif (température, précipitations, rendement agrégé, etc.) plutôt qu’à l’évaluation des pertes réelles. Cette approche permet une indemnisation rapide, transparente et moins coûteuse en frais de gestion. 
+
+Toutefois, elle introduit le risque de base (\textit{basis risk}), défini comme l’écart entre l’indemnisation versée et les pertes effectivement subies. Par principe de non enrichissement, le paiement est donc conditioné à la production d'une "preuve de perte" par l'assuré et l'indemnisation est égale au minimum entre la perte économique subie et l'indemnisation parametrique estimé. "Le risque de base est donc un aspect très important des solutions paramétriques, mais il
+est aussi inhérent à leur fonctionnement : lors de la conception et de la structuration d’une
+solution paramétrique, l’objectif est de réduire le risque de base au maximum, tout en sachant
+qu’il est impossible de le faire disparaître totalement.", BASTOS, A. (2021). Les solutions paramétriques dans un contexte de « hard-market » : une application au risque cyclonique.
+% https://www.institutdesactuaires.com/docs/mem/3e6a47b794c133fd331e6fe18ab6d898.pdf
+
+Les produits hybrides, combinant un déclencheur paramétrique et une évaluation partielle des pertes réelles, apparaissent comme une réponse pertinente pour réduire le risque de base tout en conservant les avantages opérationnels des approches indiciaires. Ce mémoire s’inscrit dans cette lignée en étudiant un contrat hybride spécifique au risque de vague de froid.  
+\section{Structure de la police analysée}
+
+La police étudiée est une réassurance paramétrique sur le gel, conçue pour protéger les cultivateurs de betteraves sucrière du Royaume-Uni contre les pertes de rendement dues à des vagues de froid. 
+Pendant la période de récolte de la betterave sucrière, les racines sont souvent stockées temporairement sur le bord de la route avant leur transport vers l’usine de transformation. Cette pratique répond à des contraintes logistiques : les exploitations et les usines ne disposent pas de capacité suffisante pour traiter l’ensemble de la production simultanément, et le stockage temporaire permet de gérer le flux de livraison et d’optimiser le transport. Il facilite également la récolte rapide des champs dès qu’ils sont prêts, sans attendre que l’usine soit capable de réceptionner immédiatement les betteraves.
+
+Cependant, cette exposition temporaire rend les racines particulièrement vulnérables aux événements climatiques extrêmes. Un gel prolongé, avec des températures inférieures à -4°C, peut provoquer la cristallisation de l’eau intracellulaire, entraînant la destruction des cellules et la détérioration des racines. La teneur en sucre peut diminuer, et seule une partie des racines peut rester commercialisable. Les pertes peuvent ainsi être importantes et hétérogènes selon la maturité et l’état physiologique des betteraves, et un gel sévère sur plusieurs jours peut affecter simultanément une grande partie des racines stockées.
+
+C’est précisément ce risque de perte directe en cas de gel qui justifie l’utilisation d’une assurance paramétrique, permettant de lier l’indemnisation à un déclencheur objectif de température tout en protégeant les cultivateurs individuels contre des pertes potentiellement massives et concentrées dans le temps.
+
+Le risque sous-jacent pour chaque bénéficiaire est définie comme la différence entre le tonnage effectivement récupéré par British Sugar et le tonnage global approuvé, qui intègre les rendements historiques, la surface plantée, les tendances nationales et les événements météorologiques influençant la production.  
+
+Le déclencheur de la police est entièrement paramétrique : une journée de gel est définie comme tout jour où la moyenne des températures minimales sur dix jours consécutifs, mesurée dans l’une des stations météorologiques sélectionnées, est inférieure ou égale à -4°C. Le premier jour de la période de dix jours doit se situer entre le 1er octobre et le 31 janvier inclusivement. Trois stations météorologiques servent à la mesure du risque et sont située dans les zones avec les plus large surfaces agricoles dédiées à la betterave.  
+
+Le règlement des pertes est individuel et indemnitaire. La police ne couvre pas la première tranche de 15\% de perte de rendement. Pour une perte comprise entre 15\% et 30\% du tonnage approuvé, l’assureur verse le montant correspondant à la perte excédant la franchise. Lorsque la perte dépasse 30\%, seulement 50\% du prix convenu est versé pour l’excédent. Un plafond de 50\% de la somme assurée est ainsi appliqué pour chaque bénéficiaire, et le montant total de l’indemnisation pour tous les bénéficiaires est limité à £15 millions, avec une réduction proportionnelle si le total des réclamations excède ce montant.  
+
+Cette structure permet de lier directement l’indemnisation à un déclencheur objectif de température tout en conservant une approche individualisée du règlement des pertes. Elle combine ainsi la rapidité et la simplicité des produits paramétriques avec une prise en compte précise des pertes réelles observées chez chaque bénéficiaire.
+
+
+
+\section{Lois de probabilité pour variables extrêmes}
+La modélisation des variables extrêmes (pertes assurantielles, l'inverse de la production lors d'une perte de rendement, etc.) repose souvent sur des lois à queues épaisses. La littérature propose plusieurs familles de distributions adaptées :  
+\begin{itemize}
+    \item les lois de valeurs extrêmes (Gumbel, Fréchet, Weibull, et leur généralisation via la loi de Pareto généralisée – GEV/GPD), 
+    \item les distributions stables à espérance indéfinie (Lévy, Cauchy) qui permettent de capturer des comportements avec beaucoup de "petits chocs" et quelques chocs importants.
+    % \item les modèles basés sur les copules pour décrire les dépendances en régime extrême.
+\end{itemize}
+
+La loi de Cauchy occupe une place particulière en raison de sa lourdeur de queue et de l’absence de moments d’ordre fini, ce qui la rend adaptée à certains phénomènes où la variance observée explose. Dans Harris, D. (2017) The Distribution of Returns. Journal of Mathematical Finance, 7, 769-804. doi: 10.4236/jmf.2017.73041, la loi de Cauchy tronquée est décrite comme un approximation raisonnable des rendement en capitaux propres. La variable aléatoire annalisée ici peut s'écrire comme un rendemement en capitaux propre pour l'assuré.
+
+\section{Méthodes de \textit{detrending}}
+\subsection{Rendements agricoles}
+L’étude des rendements agricoles sur longue période nécessite de distinguer les effets structurels (progrès techniques, augmentation des surfaces cultivées, évolution des pratiques culturales) des fluctuations aléatoires d’origine climatique. 
+
+Deux méthodes principales sont identifiées dans la littérature :  
+\begin{itemize}
+    \item les méthodes additives, où le rendement observé est modélisé comme la somme d’une tendance déterministe et d’un bruit aléatoire,
+    \item les méthodes multiplicatives, où le rendement est représenté comme le produit d’une tendance et d’un facteur aléatoire relatif.
+\end{itemize}
+
+Le choix entre les approches dépend du contexte étudié et de la structure des données. Des travaux de référence (Lu, Carbone \& Gao (2017), Meng \& Qian (2024)) montrent que les méthodes de décomposition multiplicatives, combinées à des ajustements adaptatifs (par exemple la régression localement pondérée), sont souvent privilégiées dans l’analyse des rendements agricoles, car elles conservent les proportions relatives et évitent les valeurs négatives tout en capturant correctement les anomalies par rapport à la tendance attendue.
+
+Dans ce mémoire les données de rendement sont traitées avec un détendancement multiplicatif.
+
+\subsection{Vague de froid}
+Pour isoler l’impact d’une vague de froid courte (ici 10 jours), plusieurs stratégies de détrendancement sont possibles : ajustements paramétriques simples (linéaire, quadratique), lissage non-paramétrique (kernel), correction par rapport à la moyenne mobile, ou méthodes basées sur les quantiles. Pour une vague de froid brève et marquée, la méthode par quantile s’avère la plus pertinente : elle cible la partie basse de la distribution des températures et capture spécifiquement des chutes extrêmes sans être tirée vers le centre comme le ferait la moyenne ou un kernel. 
+
+Par prudence opérationnelle nous retenons donc la méthode par quantile mais n’appliquons que la moitié de l’ajustement estimé. 
+
+% https://www.notion.so/axaclimate/Quantile-Detrending-3367b342b8ce494c958ba8fbc2837348
+
+\section{Dépendance et corrélation entre risques}
+Un enjeu central en assurance climatique réside dans la prise en compte des corrélations entre assurés ou entre zones géographiques. Les pertes ne sont en effet pas indépendantes : un même événement climatique (par exemple, une vague de froid généralisée, un été sec ou pluvieux) ou le développement d'une maladie peuvent affecter simultanément un grand nombre d’exploitations.
+
+\textbf{A reprendre !!!!}
+La littérature propose plusieurs cadres pour modéliser cette dépendance :  
+\begin{itemize}
+    \item \textbf{Corrélations linéaires classiques} : elles mesurent la force et la direction d'une relation linéaire entre deux variables (ex. rendement de deux exploitations). Simple à calculer et interpréter, elles sont toutefois souvent insuffisantes pour les événements extrêmes, car elles ne capturent pas la dépendance dans les queues de distribution.
+    \item \textbf{Copules} : ce sont des fonctions qui permettent de décrire la dépendance entre plusieurs variables, indépendamment de leurs distributions marginales. Elles sont particulièrement utiles pour modéliser des dépendances complexes et asymétriques, notamment lors d’événements extrêmes affectant plusieurs assurés simultanément.
+    \item \textbf{Approches empiriques basées sur des simulations climatiques ou des séries historiques} : elles consistent à utiliser des données simulées (modèles climatiques) ou réelles (historiques de rendements, de pertes ou de températures) pour estimer directement la corrélation et la co-occurence des pertes. Cette approche reflète le mieux la variabilité réelle mais nécessite des données longues et fiables.
+\end{itemize}
+
+Dans ce travail, une corrélation résiduelle entre comptes est identifiée et intégrée dans les simulations via la construction de vecteurs aléatoires corrélés. Cette approche s’inspire de techniques utilisées dans la modélisation du risque de crédit et de marché (\textbf{à compléter : références sur la dépendance en actuariat climatique}).  
+
+On pourrait faire des clusters geographiques ou par taille d'exploitation et faire une correlation inter et extra cluster.
+
+
+% ====================
+% DONNEES ET PREPARATION
+% ====================
+\chapter{Données et préparation}
+% Description des données utilisées
+% Pondération des années (ex. cas 2020 avec 18/100)
+% Méthodologie de frost detrending et multiplicative detrending
+% Analyse préliminaire des séries temporelles
+
+\section{Description des données utilisées}
+\subsection{Données agricoles}
+\subsubsection{Production réelle}
+Au cours de chaque campagne, depuis 2001, British Sugar enregistre pour chaque producteur le volume de betteraves livré ainsi que leur qualité, mesurée par la teneur en sucre extractible. Cette quantité ajustée constitue la production réelle.
+Pour chaque agriculteur $a$ et chaque année $i$, on note cette variable :
+$PR_{a,i}$.
+\subsubsection{Surface cultivée}
+Chaque agriculteur $a$ déclare également la surface cultivée en betteraves lors de la campagne $i$, exprimée en hectares : $S_{a,i}$
+
+\subsubsection{Contract Tonnage Entitlement}
+Le Contract Tonnage Entitlement (CTE) correspond au tonnage contractuel de betteraves qu’un producteur britannique est autorisé – et tenu – de livrer à British Sugar pour une campagne donnée.
+Ce mécanisme est défini annuellement dans le cadre de l’Inter Professional Agreement (IPA), un accord-cadre conclu entre British Sugar (unique transformateur de betteraves au Royaume-Uni) et NFU Sugar, l’organe représentatif des cultivateurs.
+\begin{itemize}
+    \item Le volume global de production est d’abord négocié entre ces deux acteurs.
+    \item Il est ensuite réparti entre les producteurs selon leurs droits historiques, leurs surfaces déclarées, ainsi que des ajustements liés aux conditions de marché ou de production.
+\end{itemize}  
+Ainsi, le CTE ne résulte pas d’une décision unilatérale de British Sugar mais d’un processus collectif.
+En cas de non-respect du CTE :
+\begin{itemize}
+    \item Pour les cultivateurs, le CTE constitue à la fois un droit et une obligation. Une livraison inférieure aux volumes attribués ne conduit généralement pas à des pénalités financières immédiates, mais peut entraîner une réduction des droits futurs.
+    \item Pour British Sugar, un déficit de production se traduit par une sous-utilisation des capacités industrielles et, potentiellement, par un recours aux importations de sucre brut.
+    \item À l’échelle sectorielle, une production nationale inférieure aux volumes convenus affaiblit la position de NFU Sugar lors des futures négociations, voire une révision à la baisse du quota global.
+\end{itemize}
+On note :
+ $CTE_{a,i}$.
+
+
+\subsubsection{Localisation géographique}
+Chaque exploitation est associée à un code postal permettant de géocoder les parcelles. Cette information, constante dans le temps, sert à relier les exploitations aux stations météorologiques les plus proches.
+
+\subsection{Données météorologiques}
+\subsubsection{Stations météorologiques}
+Pour détecter les vagues de froid, nous exploitons les températures minimales journalières enregistrées dans trois stations météorologiques représentatives des zones de culture de la betterave : Lincoln Waddington, Marham et Wattisham
+
+\textbf{Ajouter carte stations}
+\textbf{Localisation x,y}
+
+\subsubsection{Température minimale}
+La variable clé est la température minimale quotidienne, notée :  
+$T_{min,d,s}$, où $d$ désigne le jour et $s$ la station.
+
+\subsubsection{Recalibrage des températures}
+Un recalibrage statistique est appliqué afin de rendre les séries comparables entre stations et homogènes dans le temps. Cette étape permet de limiter l’effet de biais locaux (altitude, microclimat, instruments). 
+
+\subsubsection{Indice vague de froid par station}
+$IFS_{s,i}$ où $s$ désigne la station et $i$ l'année.
+
+\subsection{Variables créées}
+
+\subsubsection{Rendement réel}
+Le rendement réel d’un agriculteur $a$ en année $i$ est défini comme :
+\[RR_{a,i} = PR_{a,i} / S_{a,i}\]
+
+\subsubsection{Rendement moyen quinquennal}
+
+
+Le rendement moyen quinquennal pour l’agriculteur $a$ est défini comme :
+
+\[
+RMQ_{a,i} = \frac{1}{5} \sum_{k=0}^{4} RR_{a,i-k}.
+\]
+
+Ce rendement sert de proxy pour la productivité attendue, en tenant compte des évolutions récentes et en lissant les aléas annuels.
+
+\subsubsection{Tonnage assuré}
+Pour limiter les surestimations de production, l’assureur définit le tonnage assuré comme le minimum entre le CTE et la production attendue calculée à partir du rendement moyen sur 5 ans :
+\[TA_{a,n} = min(CTE_{a,n}, RMQ_{a,n} \times S_{a,n})\]
+On en déduit le rendement assuré :: 
+\[RA_{a,n} = TA_{a,n} / S_{a,n}\]
+
+Dans cette étude, nous considérons $n = 2025$.
+
+\subsubsection{Indice de déficit de rendement (IDR)}
+L’objectif est de modéliser le rendement réel de chaque agriculteur en 2025. Pour cela, on définit l’indice de déficit de rendement comme : 
+\[
+IDR_{a} = TA_{a} / RR_{a}
+\]
+Cet indice s’interprète comme une mesure de rentabilité comparable à un retour sur capitaux propres, où le rendement observé est rapporté au rendement attendu.
+
+\subsubsection{Distances aux stations}
+À partir des coordonnées géographiques, nous calculons les distances entre chaque exploitation et les stations météo. Ces distances servent à construire des pondérations spatiales reflétant la proximité relative de chaque station pour un champ donné.
+
+
+\subsubsection{Température interpollée}
+Les températures locales pour chaque champ sont estimées par une interpolation pondérée des températures des stations voisines. Plutôt que de présenter le code brut, nous décrivons le principe :
+\begin{itemize}
+    \item Chaque station reçoit un poids inversement proportionnel au carré de la distance. 
+    \item La température interpolée est obtenue comme une moyenne pondérée des températures recalibrées des stations.
+    \item Afin de mieux représenter les épisodes extrêmes, une combinaison entre la moyenne pondérée et la température minimale des trois stations est utilisée.
+\end{itemize}
+
+\subsubsection{Indice vague de froid par champs}
+$IFC_{c,i}$ où $c$ désigne le champs et $i$ l'année.
+
+\section{Outils de simulation de température}
+Completer l'existance de cet outils, son utilité, ses backtest etc.
+
+\section{Méthodologie de detrending}
+Les rendements et températures présentent à la fois une tendance de long terme (progrès technique, changement climatique) et une variabilité interannuelle (météo, événements extrêmes). Le but du \textit{detrending} est d’isoler la composante climatique pour obtenir une mesure plus robuste du risque.  
+
+\subsection{Tendance dans le rendement agricole}
+Sur une longue période les rendements agricoles ont suivi une tendance structurelle de croissance, qui reflète à la fois des facteurs techniques, économiques et environnementaux. 
+Cette tendance affecte a la fois le rendement réel et le rendement assuré qui définissent notre variable d'analyse. On va donc chercher à estimer les objectifs de production et les résulats de chaque agriculteur et année si cela s'était passé en 2025. 
+Pour se faire on étudie l'évolution nationnal des ces indicateur en terme de rendement (indicateur total divisé par surface agricole en année i).
+
+\subsubsection{Évolution du rendement réel}
+Le rendement réel présente une croissance marquée depuis le début des années 2000. Plusieurs éléments peuvent expliquer cette progression :
+\begin{itemize}
+    \item Progrès technique : amélioration des semences, optimisation des pratiques culturales (densité de semis, rotation, fertilisation), mécanisation accrue et généralisation d’outils d’aide à la décision.
+    \item Évolution climatique : dans certaines zones, les conditions météorologiques se sont révélées plus favorables aux cultures de betterave (périodes de croissance plus longues, températures plus douces en automne, etc.), bien que cette influence reste complexe à isoler.
+    \item Apprentissage collectif : la diffusion de bonnes pratiques et les innovations agronomiques partagées via les coopératives ou NFU Sugar ont permis une homogénéisation progressive de la performance.
+\end{itemize}
+Globalement, la tendance des rendements réels traduit un gains de productivité structurel. Toutefois, elle masque des fluctuations interannuelles importantes liées nottament aux aléas climatiques, qui justifient une modélisation spécifique de la variabilité. On nottera aussi un fort impact des maladies, nottament la fièvre jaune de la betterave.
+
+\subsubsection{Évolution du rendement assuré et rôle du CTE}
+Le rendement assuré évolue de manière similaire mais avec une pente plus marquée que celle du rendement réel. Cette différence s’explique par la dynamique particulière du Contract Tonnage Entitlement (CTE).
+En effet, le CTE représente à la fois un droit de livraison et une référence contractuelle pour la planification industrielle de British Sugar. Sa progression est déterminée par des facteurs institutionnels et économiques qui ne reflètent pas toujours directement la productivité agronomique individuelle :
+\begin{itemize}
+    \item Ajustements de quotas : certaines périodes ont connu une hausse significative du CTE, reflétant une volonté d’augmenter la production nationale en réponse à la demande du marché.
+    \item Redistribution entre producteurs : les exploitants historiquement performants ou disposant de surfaces importantes ont pu bénéficier de quotas supplémentaires, accentuant la croissance du CTE au-delà de la tendance des rendements réels.
+    \item Décorrélation partielle avec le rendement observé : il arrive que le CTE fixé contractuellement excède ce que l’on pourrait attendre des rendements historiques, ce qui conduit à une croissance artificiellement plus rapide du rendement assuré.
+\end{itemize}
+
+Ainsi, bien que le rendement assuré soit conçu pour limiter les expositions excessives, il ne reflète pas uniquement la productivité agricole mais également un ensemble de décisions économiques et institutionnelles.
+
+\subsubsection{Conséquences pour la modélisation}
+La comparaison des deux séries – rendement réel et rendement assuré – met en évidence :
+\begin{itemize}
+    \item une tendance haussière commune qui doit être isolée avant toute modélisation du risque climatique,
+    \item une pente plus forte du rendement assuré, principalement liée à la dynamique contractuelle du CTE,
+    \item des écarts croissants entre les deux indicateurs au fil du temps, qui pourraient biaiser une analyse si aucune correction n’était appliquée.
+\end{itemize}
+Pour éviter de confondre progrès structurels et fluctuations aléatoires, nous appliquons donc un detrending. Deux niveaux d’analyse sont considérés :
+\begin{itemize}
+    \item agrégé : tendance observée sur l’ensemble des producteurs,
+    \item individuel : tendance estimée producteur par producteur.
+\end{itemize}
+Compte tenu des propriétés des données, un detrending multiplicatif apparaît le plus adapté : il conserve les proportions relatives, garantit des valeurs positives et capture mieux les anomalies en pourcentage par rapport à la tendance. On estime donc les parametre de la tendance au niveau agrégé et on détendance de manière multiplicative au niveau individuel. 
+
+\subsection{Tendance dans les vagues de froids}
+Les vagues de froid sont définies par la persistance de températures minimales inférieures à 0°C sur plusieurs jours consécutifs.
+\begin{itemize}
+    \item Pour isoler leur évolution, nous appliquons un detrending par quantiles :
+    \item Chaque quantile de la distribution des températures suit une tendance propre.
+    \item La pente associée varie de façon continue selon le quantile.
+Cette méthode est particulièrement adaptée pour analyser les queues de distribution et mieux capturer les événements extrêmes.
+\end{itemize}
+Après correction, la fréquence des vagues de froid sur la période étudiée passe de 28 \% (brut) à 22 \% (corrigé), ce qui confirme l’existence d’une tendance structurelle au réchauffement hivernal.
+
+\section{Prise ne compte de la fièvre jaune de la betterave}
+Les années récentes peuvent être pondérées différemment afin de refléter leur importance dans la calibration. 
+\begin{itemize}
+    \item Justification de la pondération appliquée (par exemple : 2020 avec un poids de 18/100 en raison de caractéristiques climatiques ou agricoles particulières).
+    \item Présentation d’un tableau des pondérations retenues par année.
+    \item Discussion sur l’impact de ces pondérations sur les résultats statistiques.
+\end{itemize}
+
+\textbf{À compléter :} expliquer pourquoi 2020 reçoit un poids particulier et comment les autres années sont traitées.
+
+\section{Analyse préliminaire des séries temporelles}
+Annalyse de IDR et de Temperature. Petit Quantiles etc... 
+Information de rendement. 
+Avant la construction du modèle, une analyse exploratoire est nécessaire :
+\begin{itemize}
+    \item Vérification de la stationnarité des séries,
+    \item Détection de tendances résiduelles,
+    \item Étude des autocorrélations (ACF, PACF),
+    \item Analyse des valeurs extrêmes (quantiles élevés, événements rares),
+    \item Comparaison entre la distribution empirique et quelques lois candidates.
+\end{itemize}
+
+\textbf{À compléter :} présenter graphiques (histogrammes, boxplots, séries chronologiques) et statistiques descriptives (moyenne, variance, skewness, kurtosis) pour documenter la structure des données.
+
+% ====================
+% CONSTRUCTION DU MODELE
+% ====================
+\chapter{Construction du modèle}
+% Définition du TargetRatio
+% Troncature [1.17 ; +inf[
+% Ajustement de distributions (Cauchy vs alternatives)
+% Impact de la température sur les paramètres
+% Optimisation des paramètres (med0, medT, var0, varT)
+
+\section{Modélisation simple de l'indice de déficit de rendement}
+La variable centrale de la modélisation est l'\textit{IDR}, 
+Graphe.
+Besoin de queue epaisse.
+Test de plusieurs loi
+fit en MLE. Score en ...
+Différentes lois de probabilité peuvent être envisagées pour modéliser la distribution du TargetRatio tronqué :  
+\begin{itemize}
+    \item Loi normale et variantes (log-normale, normale tronquée),
+    \item Lois de valeurs extrêmes (GEV, GPD),
+    \item Lois à queues lourdes (Student, Cauchy, etc.).
+\end{itemize}
+
+L’ajustement se fait par estimation des paramètres (maximum de vraisemblance, méthode des moments, distance de Kolmogorov-Smirnov, etc.) et comparaison de la qualité d’ajustement.  
+
+Dans le cadre de ce mémoire, la loi de Cauchy a été retenue comme la plus pertinente, en raison de sa capacité à capturer les comportements extrêmes et à reproduire la dispersion observée empiriquement.  
+
+\textbf{À compléter :} présenter les résultats d’ajustement et les critères de sélection entre distributions.
+Liste des meilleurs lois
+
+
+\section{Troncature des données}
+Dans la pratique, le contrat étudié prévoit un \textit{deductible} qui rend les valeurs faibles du TargetRatio non pertinentes pour la modélisation. Ainsi, seules les observations supérieures à un certain seuil sont retenues.  
+
+\begin{equation}
+    \text{IDR} \in [1.17, +\infty[.
+\end{equation}
+
+Cette troncature permet de concentrer la modélisation sur les situations où le contrat est effectivement mobilisé, c’est-à-dire lorsque les pertes assurées dépassent le seuil de déclenchement.  
+
+Maths Adaptation de MLE a tronqué.
+
+\textbf{À compléter :} illustrer par un graphique comparant la distribution du TargetRatio avant et après troncature.
+Liste lois et graphes.
+Résultats.
+
+
+\section{Impact de la température sur les paramètres}
+\subsection{Bins}
+Une spécificité de l’approche est d’introduire une dépendance entre les paramètres de la loi choisie et la température.  
+
+Concrètement, les paramètres de la loi de Cauchy (médiane et échelle) sont modélisés comme des fonctions linéaires de la température $T$ :  
+
+graphe par bins. Loi de Cauchy par bins.
+
+Graphe med et var par bins. 
+
+L’analyse empirique montre que :  
+\begin{itemize}
+    \item une baisse de température conduit à une augmentation de la médiane et de la variance,
+    \item cette dépendance améliore significativement la qualité de l’ajustement par rapport à un modèle indépendant de la température.
+\end{itemize}
+
+Regression linéaire et R2.
+
+\subsection{Loi de Cauchy paramétrique}
+
+\begin{equation}
+    \text{IDR} \sim \mathcal{C}\big( \text{med}_0 + \text{med}_T \cdot T, \, \text{var}_0 + \text{var}_T \cdot T \big).
+\end{equation}
+
+
+\textbf{À compléter :} fournir les graphiques montrant la relation entre température et paramètres estimés.
+
+% \section{Optimisation des paramètres}
+L’estimation des quatre paramètres $\text{med}_0, \text{med}_T, \text{var}_0, \text{var}_T$ repose sur une procédure d’optimisation visant à minimiser l’écart entre la distribution empirique et la distribution théorique.  
+
+\begin{itemize}
+    \item Définition de la fonction de vraisemblance conditionnelle,
+    \item Mise en place de l’algorithme d’optimisation (ex. maximum de vraisemblance, gradient, algorithme numérique),
+    \item Validation statistique de la convergence et de la robustesse des paramètres.
+\end{itemize}
+
+Le résultat est un modèle paramétrique flexible, capable de reproduire la distribution conditionnelle du TargetRatio en fonction des variations de température, et donc adapté à la simulation stochastique ultérieure.
+
+\textbf{À compléter :} détailler la méthode d’optimisation choisie et les diagnostics de qualité d’ajustement.
+
+% ====================
+% DEPENDANCE ET SIMULATION
+% ====================
+\chapter{Dépendance et simulation}
+% Détection de corrélations résiduelles
+% Méthode de simulation corrélée (vecteur uniforme, copule simple)
+% Mise en place de la simulation Monte Carlo du deal
+
+\section{Détection de corrélations résiduelles}
+Après l’ajustement de la loi conditionnelle du \textit{TargetRatio}, il peut subsister une dépendance annuelles entre les comptes qui ne devrait pas être ignorée.  
+
+L’analyse empirique met en évidence une corrélation résiduelle d’environ \textbf{35\%} entre les unités observées.  
+Cette dépendance peut provenir :
+\begin{itemize}
+    \item d’effets climatiques communs entérieurs à la période de récolte,
+    \item de pratiques agricoles similaires ou de chocs de marché (ie maladies),
+\end{itemize}
+
+\textbf{À compléter :} présenter les matrices de corrélation empiriques, comparer avec des tests statistiques (corrélation de Pearson, de Spearman, tests de dépendance extrême).
+
+\section{Méthode de simulation corrélée}
+On a 2500 fermiers en 2025
+Pour reproduire cette dépendance dans le cadre des simulations, on construit un vecteur de variables aléatoires corrélées.  
+
+\subsection{Vecteur uniforme corrélé}
+La méthode retenue consiste à générer un vecteur uniforme de dimension $n$ avec une corrélation cible de $\rho = 35\%$.  
+\begin{enumerate}
+    \item Construction d’une matrice de covariance $\Sigma$ reflétant la corrélation désirée,
+    \item Génération d’un vecteur gaussien $\mathbf{Z} \sim \mathcal{N}(0, \Sigma)$,
+    \item Transformation en variables uniformes par la fonction de répartition de la loi normale :
+    \begin{equation}
+        U_i = \Phi(Z_i), \quad i = 1, \dots, n,
+    \end{equation}
+    où $\Phi$ est la fonction de répartition de la loi normale.
+\end{enumerate}
+
+\subsection{Utilisation d’une copule simple}
+Une autre approche couramment utilisée est l’application d’une copule (par exemple, gaussienne ou de Student) pour générer des dépendances non triviales.  
+
+Dans ce mémoire, une approche simple basée sur un vecteur uniforme corrélé est retenue pour assurer un bon compromis entre réalisme et complexité de mise en œuvre.  
+
+Cette méthode ne fonctionne pas ici car on a très peu d'information par compte. On pourrait les regrouper par cluster géographique ou de taille pour avoir assez de données pour generer des correlation intra groupe et donc utiliser dans copules entre ces groupes ainsi qu'une correlation unique a l'intérieur de chaque groupe.
+
+
+\section{Mise en place de la simulation Monte Carlo}
+Une fois les dépendances modélisées, la simulation du contrat se fait par une approche Monte Carlo en plusieurs étapes :  
+
+\begin{enumerate}
+    \item Simulation de trajectoires de température à partir du modèle stochastique températures
+    \item Vérification de la condition paramétrique : si la vague de froid n’est pas déclenchée, alors le paiement est nul,
+    \item Si le trigger est atteint, génération d’un vecteur uniforme corrélé $(U_1, \dots, U_n)$,
+    \item Transformation des $U_i$ en réalisations du \textit{TargetRatio} selon la loi conditionnelle de Cauchy :  
+    \begin{equation}
+        X_i = F^{-1}_{\mathcal{C}}(U_i \,|\, T_{i}), \quad i = 1, \dots, n,
+    \end{equation}
+    où $F^{-1}_{\mathcal{C}}$ désigne la fonction quantile de la loi de Cauchy conditionnelle à la température $T_{i}$,
+    \item Application de la structure contractuelle pour obtenir les paiements associés à chaque compte et chaque scénario.
+\end{enumerate}
+
+La distribution empirique des paiements peut ensuite être étudiée pour estimer la prime pure, les quantiles de risque et la sensibilité du produit.  
+
+\textbf{À compléter :} préciser le nombre de scénarios Monte Carlo retenus (ex. $10^5$), montrer des graphiques de convergence et des histogrammes des résultats simulés.
+
+% ====================
+% RESULTATS
+% ====================
+\chapter{Résultats et analyse}
+% Validation statistique des ajustements
+% Distribution des pertes / payouts
+% Analyse de sensibilité (choix de loi, corrélation, hypothèses)
+
+\section{Validation statistique des ajustements}
+L’ajustement de la loi de Cauchy conditionnelle à la température a été confronté à différentes méthodes de validation :
+\begin{itemize}
+    \item \textbf{Tests statistiques} : tests de Kolmogorov–Smirnov, Anderson–Darling, ou Cramér–von Mises pour comparer la distribution empirique et théorique.
+    \item \textbf{Critères d’information} : comparaison des AIC et BIC pour la loi de Cauchy par rapport à d’autres lois candidates (log-normale, Student, GEV).
+    \item \textbf{Outils graphiques} : QQ-plots, PP-plots et ajustement des densités empiriques et théoriques.
+\end{itemize}
+
+Les premiers résultats indiquent que la loi de Cauchy capture de manière satisfaisante la lourdeur des queues et la variabilité conditionnelle à la température.  
+
+\textbf{À compléter :} insérer ici des tableaux de résultats statistiques (valeurs de test, p-values) et des figures comparatives.
+
+\section{Distribution des pertes et des paiements}
+Les simulations de Monte Carlo permettent d’obtenir une distribution empirique des pertes et des paiements associés au produit hybride.  
+
+\subsection{Histogrammes et densités simulées}
+\begin{itemize}
+    \item Distribution des \textit{TargetRatios} simulés conditionnellement à différentes températures,
+    \item Distribution des paiements contractuels, incluant les années sans déclenchement (point mass en zéro).
+\end{itemize}
+
+\subsection{Statistiques descriptives}
+Moyenne, variance, quantiles (VaR à 95\% et 99\%), ainsi que l’Expected Shortfall sont calculés pour caractériser le profil de risque.  
+
+\textbf{À compléter :} insérer graphiques (histogrammes, densité lissée, fonctions de répartition), tableau des moments et mesures de risque.
+
+\section{Analyse de sensibilité}
+Afin d’évaluer la robustesse du modèle, plusieurs dimensions de sensibilité sont étudiées :  
+\begin{enumerate}
+    \item \textbf{Choix de loi} : comparaison des résultats obtenus avec la Cauchy vs alternatives (log-normale, Student).
+    \item \textbf{Corrélation} : impact de la variation de la corrélation résiduelle entre 20\% et 50\% sur la distribution des paiements.
+    \item \textbf{Hypothèses de simulation} : taille de l’échantillon Monte Carlo ($10^4$, $10^5$, $10^6$), choix du modèle de température.
+\end{enumerate}
+
+Cette analyse met en évidence les leviers qui influencent le plus fortement le profil de risque du produit.  
+
+\textbf{À compléter :} insérer graphiques de sensibilité (boîtes à moustaches, courbes de convergence, comparaisons de distributions) et discuter de la stabilité des résultats.
+
+
+
+% ====================
+% DISCUSSION
+% ====================
+\chapter{Discussion et limites}
+% Pertinence de l’approche
+% Limites de la loi de Cauchy (queues lourdes, robustesse)
+% Risque de surparamétrisation
+% Impacts métier pour pricing, risk management, solvabilité
+
+\section{Pertinence de l’approche}
+L’approche retenue, combinant un déclencheur paramétrique (vague de froid) et une indemnisation basée sur les pertes réelles, permet de réduire le risque de base tout en conservant la transparence et la rapidité du produit paramétrique.  
+Elle apparaît adaptée pour :
+\begin{itemize}
+    \item cibler un événement climatique rare mais récurrent (période de retour estimée à 20\%),
+    \item concentrer l’évaluation sur un sous-ensemble de situations où le rendement agricole est principalement expliqué par un facteur climatique dominant,
+    \item faciliter la tarification et la gestion des risques dans un cadre actuariel rigoureux.
+\end{itemize}
+
+\textbf{À compléter :} donner des exemples chiffrés illustrant la pertinence (réduction du risque de base, stabilité de la prime, rapidité du règlement).
+
+\section{Limites de la loi de Cauchy}
+La loi de Cauchy a été choisie pour sa capacité à représenter des distributions à queues lourdes et à intégrer l’impact de la température sur la médiane et la variance.  
+Cependant, cette loi présente plusieurs limites :
+\begin{itemize}
+    \item absence de moments d’ordre 1 et 2 bien définis, ce qui limite certaines interprétations statistiques,
+    \item grande sensibilité aux données extrêmes,
+    \item difficulté d’estimation dans des échantillons de petite taille.
+\end{itemize}
+
+\textbf{À compléter :} discuter des alternatives (Student à faible degré de liberté, GEV, log-normale) et préciser pourquoi la Cauchy reste pertinente malgré ses limites.
+
+\section{Risque de surparamétrisation}
+Le modèle conditionnel proposé repose sur quatre paramètres principaux $(med0, medT, var0, varT)$, ajustés à partir de données historiques.  
+Le risque de surparamétrisation peut apparaître si :
+\begin{itemize}
+    \item la taille de l’échantillon n’est pas suffisante pour estimer de manière robuste ces paramètres,
+    \item la relation entre température et paramètres de la loi n’est pas strictement linéaire,
+    \item les hypothèses structurelles (indépendance partielle, troncature) introduisent des biais.
+\end{itemize}
+
+\textbf{À compléter :} proposer des pistes de validation croisée (cross-validation, bootstrap) ou des tests de robustesse sur d’autres sous-échantillons.
+
+\section{Impacts métier}
+D’un point de vue métier, cette approche a plusieurs implications :
+\begin{itemize}
+    \item \textbf{Pricing :} possibilité de calibrer une prime pure plus adaptée, intégrant à la fois la fréquence et la sévérité des événements,
+    \item \textbf{Risk management :} meilleure appréhension du risque extrême lié aux vagues de froid, tout en réduisant l’aléa moral et l’anti-sélection,
+    \item \textbf{Solvabilité :} impact direct sur les calculs de SCR (Solvency Capital Requirement) via une modélisation plus fine des queues de distribution,
+    \item \textbf{Innovation produit :} introduction d’une solution hybride, à la fois paramétrique et indemnitaire, qui peut répondre à des besoins spécifiques du marché agricole.
+\end{itemize}
+
+\textbf{À compléter :} illustrer avec des exemples de pricing ou des implications réglementaires (par ex. exigences de Solvabilité II, ORSA).
+
+
+% ====================
+% CONCLUSION
+% ====================
+\chapter*{Conclusion et perspectives}
+\addcontentsline{toc}{chapter}{Conclusion et perspectives}
+% Synthèse
+% Contributions actuarielles
+% Perspectives : extensions, ML, indices multiples
+\addcontentsline{toc}{chapter}{Conclusion et perspectives}
+
+\section*{Synthèse}
+L’objectif de ce mémoire était de concevoir et de tester un modèle actuariel pour un produit d’assurance agricole hybride, combinant un déclencheur paramétrique basé sur une vague de froid et une indemnisation sur pertes réelles.  
+Cette approche permet de réduire le risque de base tout en maintenant la rapidité et la transparence d’un produit paramétrique.  
+
+La méthodologie développée a consisté à :
+\begin{itemize}
+    \item définir un indicateur de rendement (\textit{TargetRatio}) sensible aux conditions climatiques extrêmes,
+    \item ajuster une loi de Cauchy conditionnelle à la température, permettant de capter l’effet direct des vagues de froid sur la distribution des rendements,
+    \item intégrer la dépendance entre comptes à travers la simulation de vecteurs uniformes corrélés,
+    \item mettre en œuvre une simulation de Monte Carlo pour estimer la distribution des paiements et analyser la sensibilité du produit.
+\end{itemize}
+
+Les résultats montrent que ce modèle est capable de reproduire les caractéristiques observées des pertes en cas de vague de froid et d’offrir un cadre robuste pour la tarification et la gestion du risque.
+
+\section*{Contributions actuarielles}
+Ce travail apporte plusieurs contributions actuarielles :
+\begin{itemize}
+    \item une réflexion méthodologique sur les produits hybrides, intermédiaires entre paramétrique et indemnitaire,
+    \item l’utilisation innovante d’une loi de Cauchy conditionnelle pour modéliser la variabilité des rendements agricoles en fonction de la température,
+    \item une intégration explicite de la dépendance résiduelle entre comptes via une approche simple et efficace,
+    \item des résultats exploitables pour le pricing, la gestion du capital et la conception de nouveaux produits assurantiels.
+\end{itemize}
+
+\section*{Perspectives}
+Plusieurs prolongements sont possibles pour enrichir ce travail :
+\begin{itemize}
+    \item affiner la modélisation de la dépendance avec des copules liées aux géographies et tailles de contrats ou avec des loi plus flexibles (Student, Clayton, Gumbel),
+    \item  augmenter le nombre de station météorologirque pour la prédiction des pertes suite aux vagues de froids.
+    \item intégrer des indices relatif à l'apparition de maladies afin d'étudier sa raltion avec la temperature.
+    \item tester des approches issues de l’apprentissage automatique (ML) pour la détection de relations non linéaires entre variables climatiques et rendement, ???
+\end{itemize}
+
+En conclusion, ce mémoire ouvre une voie intéressante pour le développement de solutions d’assurance innovantes, capables de répondre aux enjeux croissants liés aux risques climatiques et à la nécessité d’une couverture efficace et soutenable.
+
+% ====================
+% BIBLIOGRAPHIE
+% ====================
+\clearpage
+\addcontentsline{toc}{chapter}{Bibliographie}
+\bibliographystyle{plain}
+\bibliography{memoire}
+
+\end{document}
